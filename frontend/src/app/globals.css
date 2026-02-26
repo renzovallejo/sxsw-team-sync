@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-cyan: #00f0ff;
+  --color-brand-purple: #b026ff;
+  --color-bg-dark: #0f1115;
+  --color-panel-dark: #1a1d24;
+  --color-panel-border: rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-dark text-white font-sans antialiased;
+    background-image: radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(176, 38, 255, 0.05), transparent 25%);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-panel-dark/60 backdrop-blur-xl border border-panel-border rounded-xl shadow-2xl;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-cyan to-brand-purple;
+  }
+}
