@@ -2,3 +2,6 @@
   base = "frontend"
   command = "npm run build"
   publish = "out"
+
+[build.environment]
+  NEXT_PUBLIC_API_URL = "https://sxsw-api.onrender.com"
