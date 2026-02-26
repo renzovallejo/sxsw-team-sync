@@ -1,8 +1,6 @@
 fastapi
 uvicorn
 pandas
-googlemaps
-ortools
 openpyxl
 beautifulsoup4
 lxml

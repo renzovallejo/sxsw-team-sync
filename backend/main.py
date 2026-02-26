@@ -39,7 +39,9 @@ def generate_schedule(
     Filtra por tipo de evento si se pasa 'event_type'.
     """
     try:
-        data_path = "../sxsw_schedule_seleccion.xlsx"
+        import os
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(base_dir, "..", "sxsw_schedule_seleccion.xlsx")
         
         df = pd.read_excel(data_path)
         logger.info(f"Loaded local data with columns: {df.columns.tolist()}")
