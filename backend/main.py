@@ -41,7 +41,7 @@ def generate_schedule(
     try:
         import os
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(base_dir, "..", "sxsw_schedule_seleccion.xlsx")
+        data_path = os.path.join(base_dir, "sxsw_schedule_seleccion.xlsx")
         
         df = pd.read_excel(data_path)
         logger.info(f"Loaded local data with columns: {df.columns.tolist()}")
