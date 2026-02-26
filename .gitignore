@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+
+# Backend
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+
+# OS y entornos
+.DS_Store
+.env
+.env.*.local
+.venv
+env/
