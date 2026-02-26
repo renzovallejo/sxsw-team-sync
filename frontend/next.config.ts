@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    // output: "export", // Descomentar para compilar a GHPages
+    images: {
+        unoptimized: true,
+    }
 };
 
 export default nextConfig;
