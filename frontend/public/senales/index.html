@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Señales · Foresight Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #fff; }
+  * { box-sizing: border-box; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.08); opacity: 1; } }
+  @keyframes orbit { to { transform: translateX(-50%) rotate(360deg); } }
+  @keyframes flash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .screen-in { animation: fadeUp 340ms ease-out both; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="atoms.jsx"></script>
+<script type="text/babel" src="screen-camera.jsx"></script>
+<script type="text/babel" src="screen-processing.jsx"></script>
+<script type="text/babel" src="screen-insight.jsx"></script>
+<script type="text/babel" src="screen-detail.jsx"></script>
+<script type="text/babel" src="screen-feed.jsx"></script>
+<script type="text/babel" src="screen-onboarding.jsx"></script>
+<script type="text/babel" src="screen-voice.jsx"></script>
+<script type="text/babel" src="screen-profile.jsx"></script>
+<script type="text/babel" src="screen-publish.jsx"></script>
+<script type="text/babel" src="screen-home.jsx"></script>
+<script type="text/babel" src="screen-social.jsx"></script>
+<script type="text/babel" src="screen-futuros.jsx"></script>
+<script type="text/babel" src="screen-text.jsx"></script>
+<script type="text/babel" src="screen-notifications.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "accent": "tinta",
+  "typography": "editorial",
+  "captureMode": "photo"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [tweaks, setTweaks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('senales_tweaks');
+      if (saved) return { ...TWEAKS, ...JSON.parse(saved) };
+    } catch (e) {}
+    return TWEAKS;
+  });
+  const [editMode, setEditMode] = useState(false);
+
+  const [stage, setStage] = useState(() => {
+    try { return localStorage.getItem('senales_stage') || 'onboarding'; }
+    catch (e) { return 'onboarding'; }
+  });
+  const [activeSignal, setActiveSignal] = useState(SAMPLE_SIGNALS[0]);
+  const [showSheet, setShowSheet] = useState(false);
+
+  const tabActive = ['home','feed'].includes(stage) ? 'home'
+    : stage === 'social' ? 'social'
+    : stage === 'futuros' ? 'futuros'
+    : stage === 'profile' ? 'profile' : null;
+
+  function onTabChange(t) {
+    if (t === 'home') setStage('home');
+    else if (t === 'social') setStage('social');
+    else if (t === 'futuros') setStage('futuros');
+    else if (t === 'profile') setStage('profile');
+  }
+
+  useEffect(() => {
+    try { localStorage.setItem('senales_stage', stage); } catch (e) {}
+  }, [stage]);
+
+  function updateTweak(key, value) {
+    const next = { ...tweaks, [key]: value };
+    setTweaks(next);
+    try { localStorage.setItem('senales_tweaks', JSON.stringify(next)); } catch (e) {}
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
+  }
+
+  // edit-mode handshake
+  useEffect(() => {
+    function onMsg(e) {
+      if (e.data?.type === '__activate_edit_mode') setEditMode(true);
+      if (e.data?.type === '__deactivate_edit_mode') setEditMode(false);
+    }
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const accent = ACCENTS[tweaks.accent] || ACCENTS.cinabrio;
+  const typeSys = TYPE_SYSTEMS[tweaks.typography] || TYPE_SYSTEMS.editorial;
+
+  function renderStage() {
+    switch (stage) {
+      case 'onboarding':
+        return <OnboardingScreen accent={accent} typeSys={typeSys} onDone={() => setStage('home')}/>;      
+      case 'home':
+        return (
+          <>
+            <HomeScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys}
+              onCapture={(m) => { updateTweak('captureMode', m); setStage(m === 'voice' ? 'camera' : 'camera'); }}
+              onOpenSignal={(s) => { setActiveSignal(s); setStage('detail'); }}
+              onOpenFeed={() => setStage('feed')}
+              onOpenMap={() => setStage('feed')}
+              onOpenNotifications={() => setStage('notifications')}/>
+            <TabBar active={tabActive} onTab={onTabChange}
+              onCaptureSheet={() => setShowSheet(true)} accent={accent} typeSys={typeSys}/>
+            {showSheet && <CaptureSheet accent={accent} typeSys={typeSys}
+              onPick={(m) => { setShowSheet(false); updateTweak('captureMode', m); setStage('camera'); }}
+              onClose={() => setShowSheet(false)}/>}
+          </>
+        );
+      case 'camera':
+        if (tweaks.captureMode === 'voice') {
+          return <VoiceScreen accent={accent} typeSys={typeSys} onCapture={() => setStage('processing')} onBack={() => setStage('home')}/>;
+        }
+        if (tweaks.captureMode === 'text') {
+          return <TextCaptureScreen accent={accent} typeSys={typeSys} onCapture={() => setStage('processing')} onBack={() => setStage('home')}/>;
+        }
+        return <CameraScreen accent={accent} typeSys={typeSys} onCapture={() => setStage('processing')}/>;
+      case 'processing':
+        return <ProcessingScreen accent={accent} typeSys={typeSys} onDone={() => setStage('insight')}/>;
+      case 'insight':
+        return <InsightEditorial signal={SAMPLE_SIGNALS[0]} accent={accent} typeSys={typeSys}
+          onOpen={() => { setActiveSignal(SAMPLE_SIGNALS[0]); setStage('publish'); }}
+          onNewSignal={() => setStage('camera')}/>;
+      case 'detail':
+        return <DetailScreen signal={activeSignal} accent={accent} typeSys={typeSys}
+          onBack={() => setStage('feed')}
+          onOpen={(s) => { setActiveSignal(s); }}/>;
+      case 'feed':
+        return (
+          <>
+            <FeedScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys} onOpen={(s) => { setActiveSignal(s); setStage('detail'); }}/>
+            <TabBar active={tabActive} onTab={onTabChange}
+              onCaptureSheet={() => setShowSheet(true)} accent={accent} typeSys={typeSys}/>
+            {showSheet && <CaptureSheet accent={accent} typeSys={typeSys}
+              onPick={(m) => { setShowSheet(false); updateTweak('captureMode', m); setStage('camera'); }}
+              onClose={() => setShowSheet(false)}/>}
+          </>
+        );
+      case 'social':
+        return (
+          <>
+            <SocialScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys} onOpen={(s) => { setActiveSignal(s); setStage('detail'); }}/>
+            <TabBar active={tabActive} onTab={onTabChange}
+              onCaptureSheet={() => setShowSheet(true)} accent={accent} typeSys={typeSys}/>
+            {showSheet && <CaptureSheet accent={accent} typeSys={typeSys}
+              onPick={(m) => { setShowSheet(false); updateTweak('captureMode', m); setStage('camera'); }}
+              onClose={() => setShowSheet(false)}/>}
+          </>
+        );
+      case 'futuros':
+        return (
+          <>
+            <FuturosScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys} onOpenSignal={(s) => { setActiveSignal(s); setStage('detail'); }}/>
+            <TabBar active={tabActive} onTab={onTabChange}
+              onCaptureSheet={() => setShowSheet(true)} accent={accent} typeSys={typeSys}/>
+            {showSheet && <CaptureSheet accent={accent} typeSys={typeSys}
+              onPick={(m) => { setShowSheet(false); updateTweak('captureMode', m); setStage('camera'); }}
+              onClose={() => setShowSheet(false)}/>}
+          </>
+        );
+      case 'notifications':
+        return <NotificationsScreen accent={accent} typeSys={typeSys}
+          onBack={() => setStage('home')}
+          onOpenSignal={() => { setActiveSignal(SAMPLE_SIGNALS[0]); setStage('detail'); }}
+          onOpenFuturos={() => setStage('futuros')}
+          onOpenProfile={() => setStage('profile')}/>;
+      case 'profile':
+        return (
+          <>
+            <ProfileScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys} onOpen={(s) => { setActiveSignal(s); setStage('detail'); }}/>
+            <TabBar active={tabActive} onTab={onTabChange}
+              onCaptureSheet={() => setShowSheet(true)} accent={accent} typeSys={typeSys}/>
+            {showSheet && <CaptureSheet accent={accent} typeSys={typeSys}
+              onPick={(m) => { setShowSheet(false); updateTweak('captureMode', m); setStage('camera'); }}
+              onClose={() => setShowSheet(false)}/>}
+          </>
+        );
+      case 'resonance':
+        return <DetailScreen signal={activeSignal} accent={accent} typeSys={typeSys} onBack={() => setStage('feed')} onOpen={(s) => setActiveSignal(s)}/>;
+      case 'map':
+        return <FeedScreen signals={SAMPLE_SIGNALS} accent={accent} typeSys={typeSys} onOpen={(s) => { setActiveSignal(s); setStage('detail'); }}/>;
+      case 'publish':
+        return <PublishScreen signal={activeSignal} accent={accent} typeSys={typeSys} onBack={() => setStage('insight')} onPublish={() => setStage('feed')}/>;
+      case 'enrich':
+        return <PublishScreen signal={activeSignal} accent={accent} typeSys={typeSys} onBack={() => setStage('insight')} onPublish={() => setStage('feed')}/>;
+      default:
+        return null;
+    }
+  }
+
+  const stages = [
+    { k: 'onboarding', label: '00 · Intro' },
+    { k: 'home', label: '01 · Home' },
+    { k: 'social', label: '01b · Social' },
+    { k: 'futuros', label: '01c · Futuros' },
+    { k: 'notifications', label: '01d · Notif.' },
+    { k: 'camera', label: '02 · Captura' },
+    { k: 'processing', label: '03 · Procesando' },
+    { k: 'insight', label: '04 · Insight' },
+    { k: 'detail', label: '05 · Detalle' },
+    { k: 'feed', label: '06 · Feed' },
+    { k: 'publish', label: '07 · Publicar' },
+    { k: 'profile', label: '08 · Perfil' },
+  ];
+
+  return (
+    <div style={{
+      minHeight: '100vh', background: '#fff',
+      padding: '40px 20px 80px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 24,
+      fontFamily: typeSys.body,
+    }}>
+      {/* Masthead */}
+      <div style={{
+        width: '100%', maxWidth: 900,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+        gap: 16, flexWrap: 'wrap',
+      }}>
+        <div>
+          <div style={{
+            fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            fontSize: 10, letterSpacing: 2, color: INK_3, textTransform: 'uppercase',
+          }}>Foresight Lens · prototipo iOS</div>
+          <div style={{
+            marginTop: 4,
+            fontFamily: typeSys.display,
+            fontStyle: typeSys.displayItalic ? 'italic' : 'normal',
+            fontWeight: typeSys.displayWeight,
+            fontSize: 44, lineHeight: 1, letterSpacing: -1.4, color: INK,
+          }}>Señales.</div>
+          <div style={{
+            marginTop: 8, fontSize: 14, color: INK_2, maxWidth: 520,
+            lineHeight: 1.45,
+          }}>
+            Capturas de curiosidad — foto, voz o nota — convertidas al instante en un insight,
+            tres lentes de futuro y un payload listo para el repositorio público.
+          </div>
+        </div>
+        <div style={{
+          display: 'flex', gap: 6, flexWrap: 'wrap',
+        }}>
+          {stages.map(s => (
+            <button key={s.k} onClick={() => setStage(s.k)} style={{
+              padding: '8px 11px',
+              background: stage === s.k ? INK : 'transparent',
+              color: stage === s.k ? '#F7F4EE' : INK_2,
+              border: `1px solid ${stage === s.k ? INK : 'rgba(20,17,15,0.22)'}`,
+              borderRadius: 100,
+              fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+              fontSize: 10, letterSpacing: 1.2, cursor: 'pointer',
+              textTransform: 'uppercase',
+            }}>{s.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Device */}
+      <div style={{ position: 'relative' }}>
+        <IOSDevice width={390} height={844}>
+          <div key={stage + tweaks.accent + tweaks.typography} className="screen-in" style={{ position: 'absolute', inset: 0 }}>
+            {renderStage()}
+          </div>
+        </IOSDevice>
+      </div>
+
+      {/* stage label under device */}
+      <div style={{
+        fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+        fontSize: 10, letterSpacing: 1.8, color: INK_3, textTransform: 'uppercase',
+      }}>
+        {stages.find(s => s.k === stage)?.label || ''}
+      </div>
+
+      {/* Tweaks panel */}
+      {editMode && (
+        <TweaksPanel tweaks={tweaks} onChange={updateTweak}/>
+      )}
+    </div>
+  );
+}
+
+function TweaksPanel({ tweaks, onChange }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 20, right: 20, zIndex: 100,
+      width: 260, padding: 16,
+      background: '#14110F', color: '#F7F4EE',
+      borderRadius: 14,
+      boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
+      fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
+      fontSize: 12,
+    }}>
+      <div style={{
+        fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+        fontSize: 10, letterSpacing: 1.8, opacity: 0.6,
+        textTransform: 'uppercase', marginBottom: 12,
+      }}>Tweaks</div>
+
+      <TweakGroup label="Acento">
+        {Object.entries(ACCENTS).map(([k, v]) => (
+          <button key={k} onClick={() => onChange('accent', k)} style={{
+            width: 28, height: 28, borderRadius: '50%',
+            background: v.hex, cursor: 'pointer',
+            border: tweaks.accent === k ? '2px solid #F7F4EE' : '2px solid transparent',
+            boxShadow: tweaks.accent === k ? `0 0 0 2px ${v.hex}55` : 'none',
+            padding: 0,
+          }} title={v.name}/>
+        ))}
+      </TweakGroup>
+
+      <TweakGroup label="Tipografía">
+        {Object.entries(TYPE_SYSTEMS).map(([k, v]) => (
+          <TweakPill key={k} active={tweaks.typography === k} onClick={() => onChange('typography', k)}>
+            {v.name}
+          </TweakPill>
+        ))}
+      </TweakGroup>
+
+      <TweakGroup label="Modo de captura">
+        {['photo', 'voice', 'text'].map(k => (
+          <TweakPill key={k} active={tweaks.captureMode === k} onClick={() => onChange('captureMode', k)}>
+            {k === 'photo' ? 'Foto' : k === 'voice' ? 'Voz' : 'Nota'}
+          </TweakPill>
+        ))}
+      </TweakGroup>
+    </div>
+  );
+}
+
+function TweakGroup({ label, children }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{
+        fontSize: 10, opacity: 0.55, marginBottom: 6, letterSpacing: 0.5,
+      }}>{label}</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function TweakPill({ active, onClick, children }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '6px 10px',
+      background: active ? '#F7F4EE' : 'transparent',
+      color: active ? '#14110F' : 'rgba(247,244,238,0.7)',
+      border: `1px solid ${active ? '#F7F4EE' : 'rgba(247,244,238,0.2)'}`,
+      borderRadius: 100,
+      fontFamily: 'inherit', fontSize: 11, cursor: 'pointer',
+    }}>{children}</button>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
