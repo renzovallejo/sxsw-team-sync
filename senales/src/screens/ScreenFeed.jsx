@@ -4,7 +4,7 @@ import { SignalImage, TipoTag, DisruptionMeter, Rule } from '../components/Atoms
 
 // Feed screen — public repository of signals, with filter chips
 // view: 'list' (editorial) | 'grid' (visual mosaic) | 'mapa' (geo)
-export default function FeedScreen({ signals, accent, typeSys, onOpen, feedLayout = 'list' }) {
+export default function FeedScreen({ signals, accent, typeSys, onOpen, onCapture, feedLayout = 'list' }) {
   const [filter, setFilter] = useState('todas');
   const [view, setView] = useState(feedLayout === 'grid' ? 'grid' : 'list');
   const filtered = filter === 'todas' ? signals : signals.filter(s => s.tipo === filter);
@@ -110,7 +110,7 @@ export default function FeedScreen({ signals, accent, typeSys, onOpen, feedLayou
       <Rule/>
 
       {/* grid variant */}
-      {view === 'grid' && (
+      {view === 'grid' && filtered.length > 0 && (
         <div style={{
           padding: '14px 16px 90px',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14,
@@ -156,8 +156,18 @@ export default function FeedScreen({ signals, accent, typeSys, onOpen, feedLayou
         </div>
       )}
 
+      {/* empty state */}
+      {filtered.length === 0 && (
+        <div style={{ padding: '60px 32px', textAlign: 'center', color: INK_3 }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>◎</div>
+          <div style={{ fontFamily: '"JetBrains Mono", ui-monospace, monospace', fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase' }}>
+            Sin señales en este filtro
+          </div>
+        </div>
+      )}
+
       {/* list */}
-      {view === 'list' && <div style={{ padding: '0 20px 90px' }}>
+      {view === 'list' && filtered.length > 0 && <div style={{ padding: '0 20px 90px' }}>
         {filtered.map((s, i) => (
           <div key={s.id}
             onClick={() => onOpen?.(s)}
@@ -213,26 +223,28 @@ export default function FeedScreen({ signals, accent, typeSys, onOpen, feedLayou
       {view === 'mapa' && <FeedMapView signals={filtered} accent={accent} typeSys={typeSys} onOpen={onOpen}/>}
 
       {/* floating capture FAB */}
-      <div style={{
-        position: 'sticky', bottom: 24, display: 'flex', justifyContent: 'center',
-        pointerEvents: 'none',
-      }}>
-        <button style={{
-          pointerEvents: 'auto',
-          height: 48, padding: '0 18px', borderRadius: 24,
-          background: INK, color: PAPER,
-          border: 'none', cursor: 'pointer',
-          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-          fontSize: 11, letterSpacing: 1.6, textTransform: 'uppercase',
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          boxShadow: '0 8px 24px rgba(20,17,15,0.25)',
+      {onCapture && (
+        <div style={{
+          position: 'sticky', bottom: 24, display: 'flex', justifyContent: 'center',
+          pointerEvents: 'none',
         }}>
-          <span style={{
-            width: 8, height: 8, borderRadius: '50%', background: accent.hex,
-          }}/>
-          Capturar señal
-        </button>
-      </div>
+          <button onClick={onCapture} style={{
+            pointerEvents: 'auto',
+            height: 48, padding: '0 18px', borderRadius: 24,
+            background: INK, color: PAPER,
+            border: 'none', cursor: 'pointer',
+            fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            fontSize: 11, letterSpacing: 1.6, textTransform: 'uppercase',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            boxShadow: '0 8px 24px rgba(20,17,15,0.25)',
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%', background: accent.hex,
+            }}/>
+            Capturar señal
+          </button>
+        </div>
+      )}
     </div>
   );
 }

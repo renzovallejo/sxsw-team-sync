@@ -3,7 +3,7 @@ import { PAPER, PAPER_DEEP, INK, INK_2, INK_3, RULE } from '../tokens.js';
 import { TipoTag, DisruptionMeter, Rule } from '../components/Atoms.jsx';
 
 // Futuros — visual scenarios generated from user's favorite signals
-export default function FuturosScreen({ signals, accent, typeSys, onOpenSignal }) {
+export default function FuturosScreen({ signals, accent, typeSys, onOpenSignal, onRegenerate }) {
   const [activeFavSet, setActiveFavSet] = useState(0);
 
   // The user's "favoritas" — pretend these are saved
@@ -148,7 +148,7 @@ export default function FuturosScreen({ signals, accent, typeSys, onOpenSignal }
         </div>
 
         {/* Regenerate CTA */}
-        <button style={{
+        <button onClick={() => { setActiveFavSet(s => s + 1); onRegenerate?.(); }} style={{
           marginTop: 20, width: '100%', padding: '14px',
           background: 'transparent', border: `1px dashed ${INK_3}`, cursor: 'pointer',
           fontFamily: '"JetBrains Mono", ui-monospace, monospace',

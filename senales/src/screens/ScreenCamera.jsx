@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // Camera capture screen — full-bleed viewfinder with reticle + minimal chrome
-export default function CameraScreen({ onCapture, accent, typeSys }) {
+export default function CameraScreen({ onCapture, onBack, accent, typeSys }) {
   const [flashed, setFlashed] = useState(false);
 
   function handleShutter() {
@@ -54,20 +54,23 @@ export default function CameraScreen({ onCapture, accent, typeSys }) {
         }}/>
       </div>
 
-      {/* top chrome — status bar area + brand */}
+      {/* top chrome — back button + brand */}
       <div style={{
         position: 'absolute', top: 60, left: 0, right: 0, padding: '8px 20px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        color: 'rgba(255,255,255,0.85)',
-        fontFamily: typeSys.body, fontSize: 12, letterSpacing: 1.4,
       }}>
+        <button onClick={onBack} style={{
+          width: 36, height: 36, borderRadius: 18,
+          background: 'rgba(255,255,255,0.15)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.25)',
+          color: '#fff', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, lineHeight: 1,
+        }}>‹</button>
         <span style={{
           fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-          fontSize: 10, opacity: 0.7,
-        }}>FORESIGHT LENS · v1.2</span>
-        <span style={{
-          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-          fontSize: 10, opacity: 0.7,
+          fontSize: 10, color: 'rgba(255,255,255,0.7)',
         }}>◉ REC</span>
       </div>
 

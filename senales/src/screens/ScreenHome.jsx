@@ -4,6 +4,13 @@ import { SignalImage, TipoTag, DisruptionMeter } from '../components/Atoms.jsx';
 
 // Home screen — landing after onboarding, with news + quick actions
 export default function HomeScreen({ signals, accent, typeSys, onCapture, onOpenSignal, onOpenFeed, onOpenMap, onOpenNotifications }) {
+  if (!signals?.length) return (
+    <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, color: INK_3, fontFamily: typeSys.body }}>
+      <div style={{ fontSize: 32 }}>◎</div>
+      <div style={{ fontFamily:'"JetBrains Mono",ui-monospace,monospace', fontSize:11, letterSpacing:1.4, textTransform:'uppercase' }}>Sin señales aún</div>
+      <button onClick={() => onCapture?.('photo')} style={{ marginTop:8, padding:'10px 20px', background: INK, color: PAPER, border:'none', borderRadius:24, cursor:'pointer', fontSize:13 }}>Capturar la primera</button>
+    </div>
+  );
   const featured = signals[0];
   const recent = signals.slice(1, 4);
 

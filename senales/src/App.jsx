@@ -66,7 +66,7 @@ export default function App() {
         {showSheet && (
           <CaptureSheet accent={ACCENT} typeSys={TYPE_SYS}
             onPick={(m) => { setShowSheet(false); setCaptureMode(m); push('camera'); }}
-            onClose={() => setShowSheet(false)}/>
+            onClose={() => { setShowSheet(false); setCaptureMode('photo'); }}/>
         )}
       </>
     );
@@ -79,11 +79,11 @@ export default function App() {
       case 'camera':
         if (captureMode === 'voice') return <VoiceScreen accent={ACCENT} typeSys={TYPE_SYS} onCapture={() => replace('processing')} onBack={pop}/>;
         if (captureMode === 'text') return <TextCaptureScreen accent={ACCENT} typeSys={TYPE_SYS} onCapture={() => replace('processing')} onBack={pop}/>;
-        return <CameraScreen accent={ACCENT} typeSys={TYPE_SYS} onCapture={() => replace('processing')}/>;
+        return <CameraScreen accent={ACCENT} typeSys={TYPE_SYS} onCapture={() => replace('processing')} onBack={pop}/>;
       case 'processing': return <ProcessingScreen accent={ACCENT} typeSys={TYPE_SYS} onDone={() => replace('insight')}/>;
-      case 'insight': return <InsightEditorial signal={SAMPLE_SIGNALS[0]} accent={ACCENT} typeSys={TYPE_SYS} onOpen={() => { setActiveSignal(SAMPLE_SIGNALS[0]); push('publish'); }} onNewSignal={() => replace('camera')}/>;
+      case 'insight': return <InsightEditorial signal={activeSignal} accent={ACCENT} typeSys={TYPE_SYS} onOpen={() => push('publish')} onNewSignal={() => replace('camera')}/>;
       case 'publish': return <PublishScreen signal={activeSignal} accent={ACCENT} typeSys={TYPE_SYS} onBack={pop} onPublish={() => goRoot('feed')}/>;
-      case 'feed': return withTabBar(<FeedScreen signals={SAMPLE_SIGNALS} accent={ACCENT} typeSys={TYPE_SYS} onOpen={(s) => { setActiveSignal(s); push('detail'); }}/>);
+      case 'feed': return withTabBar(<FeedScreen signals={SAMPLE_SIGNALS} accent={ACCENT} typeSys={TYPE_SYS} onOpen={(s) => { setActiveSignal(s); push('detail'); }} onCapture={() => setShowSheet(true)}/>);
       case 'detail': return <DetailScreen signal={activeSignal} accent={ACCENT} typeSys={TYPE_SYS} onBack={pop} onOpen={(s) => setActiveSignal(s)}/>;
       case 'social': return withTabBar(<SocialScreen signals={SAMPLE_SIGNALS} accent={ACCENT} typeSys={TYPE_SYS} onOpen={(s) => { setActiveSignal(s); push('detail'); }}/>);
       case 'futuros': return withTabBar(<FuturosScreen signals={SAMPLE_SIGNALS} accent={ACCENT} typeSys={TYPE_SYS} onOpenSignal={(s) => { setActiveSignal(s); push('detail'); }}/>);
