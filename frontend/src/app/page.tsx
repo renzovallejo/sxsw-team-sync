@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CalendarView, EventItem } from "@/components/CalendarView";
-import { Activity, Sparkles } from "lucide-react";
+import { Activity, Sparkles, Radio } from "lucide-react";
 
 const AVAILABLE_DAYS = [
   { value: "2026-03-12", label: "Jueves 12 de Marzo" },
@@ -95,6 +95,15 @@ export default function Home() {
           </h1>
         </div>
         <div className="flex items-center space-x-4">
+          <a
+            href="/senales/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-panel-dark border border-panel-border hover:border-brand-cyan transition-colors text-sm font-semibold text-gray-300 hover:text-white"
+          >
+            <Radio size={15} className="text-brand-cyan" />
+            <span>Señales App</span>
+          </a>
           <div className="h-10 w-10 rounded-full border border-panel-border overflow-hidden bg-panel-dark p-1">
             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=Felix`} alt="User" className="w-full h-full rounded-full" />
           </div>
